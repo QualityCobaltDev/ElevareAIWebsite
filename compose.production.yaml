@@ -1,0 +1,13 @@
+services:
+  web:
+    image: elevareai-website:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: elevareai-web
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SITE_URL: https://elevareai.store
+    restart: always
