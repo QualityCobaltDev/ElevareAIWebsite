@@ -143,7 +143,7 @@ sudo systemctl enable --now docker nginx
 ### B. Clone/update app and configure env
 
 ```bash
-git clone <your-repo-url> /opt/elevareai
+git clone <repo-url> /opt/elevareai
 cd /opt/elevareai
 cp .env.example .env
 # Edit .env with real SMTP values
