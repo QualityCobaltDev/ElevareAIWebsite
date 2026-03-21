@@ -1,30 +1,68 @@
 # ElevareAI Website
 
-Production-ready Next.js website for **ElevareAI** (`https://elevareai.store`) with upgraded premium UX, truth-based B2B content, SMTP-powered contact delivery, and VPS deployment assets for Docker + Nginx.
+Official production website for **ElevareAI** at **https://elevareai.store**.
 
-## Stack
-- Next.js App Router + TypeScript
-- Tailwind CSS
-- Structured content layer in `src/content/*`
-- Standalone Docker build (`output: 'standalone'`)
+This project uses Next.js App Router + TypeScript + Tailwind and is deployed on a Contabo VPS behind Nginx with Docker Compose.
 
-## Content management (owner-editable)
-Update business copy and structure from centralized files:
-- `src/content/site.ts` (company profile, nav, CTAs, contact details, footer/legal note)
-- `src/content/services.ts` (service definitions + detailed scope blocks)
-- `src/content/faqs.ts` (homepage FAQs)
-- `src/content/trust.ts` (trust/security principles and FAQs)
+---
 
-## Environment variables
-Create `.env` from `.env.example`:
+## 1) What this repository contains
+
+- Premium, truth-based marketing site pages (Home, About, Services, Service Details, Trust & Security, Contact, Privacy, Terms).
+- Centralized editable content under `src/content/*`.
+- Server-side contact form endpoint with SMTP delivery.
+- Security hardening in both the app (`next.config.mjs`) and reverse proxy (`deploy/nginx/elevareai.store.conf`).
+- Docker + Compose configuration for local and production deployment.
+
+---
+
+## 2) Quick tech stack
+
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Docker** standalone runtime (`output: 'standalone'`)
+
+---
+
+## 3) Editing website content (no code logic changes required)
+
+Update these files when you want to change copy/navigation/contact info:
+
+- `src/content/site.ts`
+  - Company name, domain, tagline, nav, CTA labels, email, phone, footer/legal notes.
+- `src/content/services.ts`
+  - Services list + detailed service page sections (scope, outcomes, fit, etc.).
+- `src/content/faqs.ts`
+  - Homepage FAQ entries.
+- `src/content/trust.ts`
+  - Trust & Security page principles and FAQs.
+
+Main route files:
+
+- Home: `src/app/page.tsx`
+- About: `src/app/about/page.tsx`
+- Services: `src/app/services/page.tsx`
+- Service details: `src/app/services/[slug]/page.tsx`
+- Trust & Security: `src/app/trust-security/page.tsx`
+- Contact: `src/app/contact/page.tsx`
+
+---
+
+## 4) Required environment variables
+
+Create `.env` from the example:
 
 ```bash
 cp .env.example .env
 ```
 
-Required SMTP variables for contact form email delivery:
+Set all SMTP variables in `.env`:
 
 ```env
+NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://elevareai.store
+
 SMTP_HOST=smtp.your-provider.com
 SMTP_PORT=465
 SMTP_SECURE=true
@@ -35,54 +73,90 @@ CONTACT_FROM_EMAIL=contact@elevareai.store
 CONTACT_REPLY_TO=contact@elevareai.store
 ```
 
-Notes:
-- `CONTACT_TO_EMAIL` is where enquiries are delivered.
-- `CONTACT_FROM_EMAIL` should be a valid mailbox allowed by your SMTP provider.
-- For providers requiring implicit TLS (typical port 465), keep `SMTP_SECURE=true`.
+### Notes
 
-## Local development
+- `CONTACT_TO_EMAIL` is where form submissions are delivered.
+- `CONTACT_FROM_EMAIL` must be allowed by your SMTP provider.
+- `SMTP_SECURE=true` is recommended with port `465`.
+- Never commit real credentials to git.
+
+---
+
+## 5) Local development
+
+Install dependencies and start dev server:
+
 ```bash
 npm install
 npm run dev
 ```
-Open: `http://localhost:3000`
 
-## Build and checks
+Open `http://localhost:3000`.
+
+### Validation commands
+
 ```bash
-npm run lint
 npm run typecheck
+npm run lint
 npm run build
 ```
 
-## Docker (local)
+---
+
+## 6) Contact form behavior (production)
+
+Endpoint: `POST /api/contact`
+
+Implemented protections:
+
+- Server-side validation and sanitization.
+- Same-origin check.
+- Payload size limit.
+- Honeypot bot trap field.
+- In-memory IP rate limit (single VPS friendly).
+- SMTP-based delivery using env credentials.
+
+If SMTP is misconfigured, the API safely returns an error without exposing secrets.
+
+---
+
+## 7) Run with Docker (local)
+
 ```bash
 docker compose -f compose.yaml up -d --build
 ```
-Site: `http://localhost:3000`
 
-## Production deployment (Contabo VPS)
+Application runs on `http://localhost:3000`.
 
-### 1) Server prerequisites
+---
+
+## 8) Production deployment (Contabo VPS)
+
+### A. Install prerequisites (first-time setup)
+
 ```bash
 sudo apt update
 sudo apt install -y docker.io docker-compose-plugin nginx certbot python3-certbot-nginx
 sudo systemctl enable --now docker nginx
 ```
 
-### 2) Deploy code
+### B. Clone/update app and configure env
+
 ```bash
 git clone <repo-url> /opt/elevareai
 cd /opt/elevareai
 cp .env.example .env
-# Edit .env with real SMTP credentials
+# Edit .env with real SMTP values
 ```
 
-### 3) Start production container
+### C. Build and start production container
+
 ```bash
 docker compose -f compose.production.yaml up -d --build
 ```
 
-### 4) Configure Nginx reverse proxy
+### D. Install Nginx site config
+
 ```bash
 sudo cp deploy/nginx/elevareai.store.conf /etc/nginx/sites-available/elevareai.store.conf
 sudo ln -s /etc/nginx/sites-available/elevareai.store.conf /etc/nginx/sites-enabled/elevareai.store.conf
@@ -90,51 +164,58 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 5) Enable SSL
+### E. Enable SSL certificates
+
 ```bash
 sudo certbot --nginx -d elevareai.store -d www.elevareai.store
 ```
 
-After SSL, enable HSTS in Nginx config when ready.
+After SSL is active, you can enable the HSTS line in `deploy/nginx/elevareai.store.conf`.
 
-### 6) Updates
+---
+
+## 9) How to update the live website safely
+
+From the VPS:
+
 ```bash
 cd /opt/elevareai
 git pull
 docker compose -f compose.production.yaml up -d --build
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## Contact form testing (safe)
-1. Configure `.env` with a real SMTP account.
-2. Submit a test enquiry from `/contact` using non-sensitive data.
-3. Confirm email arrives at `contact@elevareai.store`.
-4. Confirm honeypot/rate-limiting behavior:
-   - submit repeatedly and verify eventual HTTP `429` response,
-   - populate hidden `website` field manually and verify silent drop behavior (`ok: true`, no delivered email).
+Then verify:
 
-## Security notes
-Implemented protections include:
-- Server-side validation + sanitization
-- Origin checking for POST requests
-- Payload size enforcement
-- In-memory per-IP rate limiting (single VPS friendly)
-- Honeypot anti-spam field
-- Security headers in `next.config.mjs`
-- Additional reverse-proxy headers and request limits in `deploy/nginx/elevareai.store.conf`
+1. Home page loads.
+2. Contact form submits successfully.
+3. Email arrives at `contact@elevareai.store`.
+4. `https://elevareai.store/sitemap.xml` and `https://elevareai.store/robots.txt` are reachable.
 
-## Project structure
-```txt
-src/
-  app/
-    about/
-    contact/
-    services/
-    trust-security/
-    privacy/
-    terms/
-    api/contact/
-  components/
-  content/
-  lib/
-deploy/nginx/
-```
+---
+
+## 10) Contact form test checklist
+
+1. Submit from `/contact` with test business data.
+2. Confirm delivery to `contact@elevareai.store`.
+3. Submit invalid payload to verify validation errors.
+4. Rapidly submit multiple times to confirm rate limiting (`429`).
+5. Ensure hidden honeypot field (`website`) is empty in normal browser use.
+
+---
+
+## 11) Security implementation locations
+
+- App headers + CSP: `next.config.mjs`
+- API validation/rate limit/origin checks: `src/lib/contact.ts`
+- SMTP sender: `src/lib/smtp.ts`
+- Contact API route: `src/app/api/contact/route.ts`
+- Nginx hardening + proxy behavior: `deploy/nginx/elevareai.store.conf`
+
+---
+
+## 12) Important operational notes
+
+- Keep all public content factual (no fabricated clients, metrics, testimonials, certifications, or case studies).
+- Privacy/Terms pages are operational drafts and should be finalized with legal review before formal legal use.
+- This repository is configured for standalone Next.js output and current Docker/Nginx VPS deployment pattern.
