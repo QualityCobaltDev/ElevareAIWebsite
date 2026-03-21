@@ -1,17 +1,20 @@
 import type { Metadata } from 'next';
 import { siteConfig } from '@/content/site';
 
+const defaultTitle = `${siteConfig.companyName} | AI, SaaS & Automation Advisory`;
+
 export const baseMetadata: Metadata = {
   metadataBase: new URL(siteConfig.domain),
   title: {
-    default: `${siteConfig.companyName} | AI & Business Technology Advisory`,
+    default: defaultTitle,
     template: `%s | ${siteConfig.companyName}`
   },
   description: siteConfig.description,
   applicationName: siteConfig.companyName,
   alternates: { canonical: '/' },
+  keywords: ['AI advisory', 'SaaS selection', 'automation strategy', 'technology decision support', 'business technology consulting'],
   openGraph: {
-    title: `${siteConfig.companyName} | AI & Business Technology Advisory`,
+    title: defaultTitle,
     description: siteConfig.description,
     url: siteConfig.domain,
     siteName: siteConfig.companyName,
@@ -20,7 +23,7 @@ export const baseMetadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteConfig.companyName} | AI & Business Technology Advisory`,
+    title: defaultTitle,
     description: siteConfig.description
   }
 };
