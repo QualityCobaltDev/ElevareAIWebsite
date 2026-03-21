@@ -7,12 +7,17 @@ export const organizationJsonLd = {
   url: siteConfig.domain,
   sameAs: [siteConfig.linkedInUrl],
   description: siteConfig.description,
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Winnipeg',
-    addressRegion: 'MB',
-    addressCountry: 'CA'
-  }
+  email: siteConfig.email,
+  telephone: siteConfig.phone,
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: siteConfig.email,
+      telephone: siteConfig.phone,
+      areaServed: 'KH'
+    }
+  ]
 };
 
 export const websiteJsonLd = {
@@ -21,5 +26,9 @@ export const websiteJsonLd = {
   name: siteConfig.companyName,
   url: siteConfig.domain,
   description: siteConfig.description,
-  inLanguage: 'en'
+  inLanguage: 'en',
+  potentialAction: {
+    '@type': 'ContactAction',
+    target: `${siteConfig.domain}/contact`
+  }
 };
