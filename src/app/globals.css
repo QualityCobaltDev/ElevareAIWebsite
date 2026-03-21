@@ -3,11 +3,16 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+}
+
+* {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply min-h-screen bg-slate-950 text-slate-100 antialiased;
+  background-image: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.14), transparent 35%);
 }
 
 .container-shell {
@@ -15,9 +20,22 @@ body {
 }
 
 .surface {
-  @apply border border-white/10 bg-white/5 backdrop-blur-sm;
+  @apply border border-white/10 bg-white/[0.04] backdrop-blur-sm;
 }
 
 .text-balance {
   text-wrap: balance;
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-900;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
